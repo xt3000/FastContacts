@@ -21,12 +21,13 @@
         android:gravity="center"
         android:text="Выберите контакт"
         android:textColor="@android:color/primary_text_dark"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:visibility="gone" />
 
     <ExpandableListView
         android:id="@+id/elv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/tv"
+        android:layout_below="@+id/sv"
         android:layout_marginTop="0dp" />
 </RelativeLayout>

@@ -7,6 +7,8 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.PendingIntent;
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
@@ -19,6 +21,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.ExpandableListView;
+import android.widget.SearchView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Toast;
 
@@ -30,6 +33,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     public final String TAG = "FINCH";
+    public final String TAG_SEARCH = "FINCH_SEARCH";
 
     String[] cNames;
     public  final int P_LABEL = 0;
@@ -52,13 +56,34 @@ public class MainActivity extends AppCompatActivity {
 
     final int REQUEST_CODE_PERMISSIONS = 3284;
     public  volatile ArrayList<Contact> contacts;
+    SearchView sv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         elvMain = findViewById(R.id.elv);
+        sv = findViewById(R.id.sv);
+
+        SearchManager sManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        sv.setSearchableInfo(sManager.getSearchableInfo(getComponentName()));
+        sv.setIconifiedByDefault(false);
+
+        sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Log.d(TAG_SEARCH, "onQueryTextSubmit: " + query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                Log.d(TAG_SEARCH, "onQueryTextChange: " + newText);
+                return false;
+            }
+        });
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
@@ -129,6 +154,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+
+
+    ///  ПОЛЬЗОВАТЕЛЬСКИЕ МЕТОДЫ   ///
     private void listCreate() {
         contacts = Contacts.getAll(this);
 
@@ -183,5 +218,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+    }
+
+    private void handleIntent(Intent intent) {
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String query = intent.getStringExtra(SearchManager.QUERY);
+            search(query);
+        }
+    }
+
+    private void search(String query) {
+        Log.d(TAG_SEARCH, "search: " + query);
     }
 }
