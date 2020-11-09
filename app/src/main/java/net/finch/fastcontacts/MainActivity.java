@@ -8,12 +8,10 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.app.SearchManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,7 +23,6 @@ import android.widget.SearchView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Toast;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,7 +52,8 @@ public class MainActivity extends AppCompatActivity {
     ExpandableListView elvMain;
 
     final int REQUEST_CODE_PERMISSIONS = 3284;
-    public  volatile ArrayList<Contact> contacts;
+    public  volatile ArrayList<Contact> allContacts;
+    public ArrayList<Contact> searchContacts;
     SearchView sv;
 
     @Override
@@ -67,23 +65,9 @@ public class MainActivity extends AppCompatActivity {
         elvMain = findViewById(R.id.elv);
         sv = findViewById(R.id.sv);
 
-        SearchManager sManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        sv.setSearchableInfo(sManager.getSearchableInfo(getComponentName()));
+//        SearchManager sManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+//        sv.setSearchableInfo(sManager.getSearchableInfo(getComponentName()));
         sv.setIconifiedByDefault(false);
-
-        sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                Log.d(TAG_SEARCH, "onQueryTextSubmit: " + query);
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                Log.d(TAG_SEARCH, "onQueryTextChange: " + newText);
-                return false;
-            }
-        });
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
@@ -92,27 +76,46 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.CALL_PHONE}, REQUEST_CODE_PERMISSIONS);
         }
 
+        sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.equals("")) {
+                    searchContacts = allContacts;
+                    updateList(searchContacts);
+                }
+                else search(newText);
+                return false;
+            }
+        });
+
         elvMain.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             public boolean onChildClick(ExpandableListView parent, View v,
                                         int namePos,   int phonePos, long id) {
                 Log.d(TAG, "onChildClick groupPosition = " + namePos +
                         " childPosition = " + phonePos +
                         " id = " + id);
-                String tel = "tel:" + contacts.get(namePos).getPhones(phonePos)[P_NUMBER];
-                Toast.makeText(MainActivity.this, tel, Toast.LENGTH_LONG).show();
+                String tel = "tel:" + searchContacts.get(namePos).getPhones(phonePos)[P_NUMBER];
+                String toast = "Контакт: " +  searchContacts.get(namePos).getName() + " (" + searchContacts.get(namePos).getPhones(phonePos)[P_NUMBER] + ") добавлен на рабочий экран.";
+                Toast.makeText(MainActivity.this, toast, Toast.LENGTH_LONG).show();
                 Intent cIntent = new Intent(Intent.ACTION_CALL, Uri.parse(tel));
 
                 ShortcutManager sm = MainActivity.this.getSystemService(ShortcutManager.class);
                 if (sm.isRequestPinShortcutSupported()) {
-                    Icon ico = Icon.createWithResource(MainActivity.this, R.drawable.ic_launcher_foreground);
-                    if (contacts.get(namePos).getPhotoUrl() != null) {
-                        try {ico = Icon.createWithBitmap(MediaStore.Images.Media.getBitmap(MainActivity.this.getContentResolver(), Uri.parse(contacts.get(namePos).getPhotoUrl())));}
+                    Icon ico = Icon.createWithResource(MainActivity.this, R.mipmap.ic_contact_circle);
+                    if (searchContacts.get(namePos).getPhotoUrl() != null) {
+                        try {ico = Icon.createWithBitmap(MediaStore.Images.Media.getBitmap(MainActivity.this.getContentResolver(), Uri.parse(searchContacts.get(namePos).getPhotoUrl())));}
                         catch (IOException e) {e.printStackTrace();}
                     }
 
-                    ShortcutInfo pinSI = new ShortcutInfo.Builder(MainActivity.this, contacts.get(namePos).getName())
+                    ShortcutInfo pinSI = new ShortcutInfo.Builder(MainActivity.this, searchContacts.get(namePos).getName())
                             .setIntent(cIntent)
-                            .setShortLabel(contacts.get(namePos).getName())
+                            .setShortLabel(searchContacts.get(namePos).getName())
                             .setIcon(ico)
                             .build();
 
@@ -154,24 +157,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        handleIntent(intent);
-    }
+//    @Override
+//    protected void onNewIntent(Intent intent) {
+//        super.onNewIntent(intent);
+//        setIntent(intent);
+//        handleIntent(intent);
+//    }
 
 
 
     ///  ПОЛЬЗОВАТЕЛЬСКИЕ МЕТОДЫ   ///
     private void listCreate() {
-        contacts = Contacts.getAll(this);
+        allContacts = Contacts.getAll(this);
+        searchContacts = allContacts;
+        updateList(allContacts);
+    }
 
+    private void updateList(ArrayList<Contact> contacts) {
         if (contacts == null){
             Toast.makeText(MainActivity.this, "У вас нет контактов которые можно добавить на главный экран", Toast.LENGTH_LONG).show();
         }else {
             cNames = new String[contacts.size()];
-            for (int i=0; i<contacts.size(); i++) {
+            for (int i = 0; i< contacts.size(); i++) {
                 cNames[i] = contacts.get(i).getName();
             }
 
@@ -194,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
             // создаем коллекцию для коллекций элементов
             childData = new ArrayList<ArrayList<Map<String, String>>>();
 
-            for (int i=0; i<contacts.size(); i++) {
+            for (int i = 0; i< contacts.size(); i++) {
                 childData.add(contacts.get(i).getPhonesMap("phones"));
             }
 
@@ -216,18 +223,17 @@ public class MainActivity extends AppCompatActivity {
 
             elvMain.setAdapter(adapter);
         }
-
-
-    }
-
-    private void handleIntent(Intent intent) {
-        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String query = intent.getStringExtra(SearchManager.QUERY);
-            search(query);
-        }
     }
 
     private void search(String query) {
-        Log.d(TAG_SEARCH, "search: " + query);
+        query = query.toLowerCase();
+        searchContacts = new ArrayList<>();
+        for (int i=0; i<allContacts.size(); i++) {
+            if (allContacts.get(i).getName().toLowerCase().contains(query)) {
+                searchContacts.add(allContacts.get(i));
+            }
+        }
+
+        updateList(searchContacts);
     }
 }
