@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.app.PendingIntent;
@@ -49,12 +50,13 @@ public class MainActivity extends AppCompatActivity {
     // список атрибутов группы или элемента
     Map<String, String> m;
 
-    ExpandableListView elvMain;
-
     final int REQUEST_CODE_PERMISSIONS = 3284;
     public  volatile ArrayList<Contact> allContacts;
     public ArrayList<Contact> searchContacts;
+
+    ExpandableListView elvMain;
     SearchView sv;
+    RecyclerView rv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
         elvMain = findViewById(R.id.elv);
         sv = findViewById(R.id.sv);
+        rv = findViewById(R.id.rv);
 
 //        SearchManager sManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
 //        sv.setSearchableInfo(sManager.getSearchableInfo(getComponentName()));
@@ -87,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 if (newText.equals("")) {
                     searchContacts = allContacts;
-                    updateList(searchContacts);
+                    updRecycler(searchContacts);
                 }
                 else search(newText);
                 return false;
@@ -170,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
     private void listCreate() {
         allContacts = Contacts.getAll(this);
         searchContacts = allContacts;
-        updateList(allContacts);
+        updRecycler(allContacts);
     }
 
     private void updateList(ArrayList<Contact> contacts) {
@@ -225,6 +228,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private  void updRecycler(ArrayList<Contact> contacts) {
+        RVAdapter rvAdapter = new RVAdapter(this, contacts);
+        rv.setAdapter(rvAdapter);
+    }
+
     private void search(String query) {
         query = query.toLowerCase();
         searchContacts = new ArrayList<>();
@@ -234,6 +242,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        updateList(searchContacts);
+        updRecycler(searchContacts);
     }
 }
