@@ -26,14 +26,6 @@
                 android:paddingTop="20dp"
                 android:paddingBottom="20dp" />
 
-            <TextView
-                android:id="@+id/tvPhones"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:paddingStart="37dp"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp" />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>

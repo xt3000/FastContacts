@@ -15,8 +15,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
     private LayoutInflater inflater;
     private ArrayList<Contact> contacts;
 
-    RVAdapter(Context context, ArrayList<Contact> phones) {
-        this.contacts = phones;
+    RVAdapter(Context context, ArrayList<Contact> contacts) {
+        this.contacts = contacts;
         this.inflater = LayoutInflater.from(context);
     }
     @Override
@@ -30,6 +30,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(RVAdapter.ViewHolder holder, int position) {
         Contact c = contacts.get(position);
+
+
         holder.tvName.setText(c.getName());
     }
 
@@ -40,10 +42,22 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder> {
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         final TextView tvName;
+        final TextView tvPhone;
+        boolean isGroup = true; // группа = true, подгруппа = false;
+        boolean expended = false; // группа растянута = true;
 
         ViewHolder(View view){
             super(view);
-            tvName = (TextView) view.findViewById(R.id.tvNames);
+            tvName = view.findViewById(R.id.tvNames);
+            tvPhone = view.findViewById(R.id.tvPhones);
+        }
+
+        public void setExpended(boolean expended) {
+            this.expended = expended;
+        }
+
+        public void setGroup(boolean group) {
+            isGroup = group;
         }
     }
 }

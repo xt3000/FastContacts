@@ -40,5 +40,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/sv"
-        app:layoutManager="LinearLayoutManager" />
+        app:layoutManager="LinearLayoutManager"
+        tools:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/llContainer"
+        android:layout_below="@+id/sv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"></LinearLayout>
 </RelativeLayout>

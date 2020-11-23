@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.app.PendingIntent;
-import android.app.SearchManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
@@ -19,10 +18,14 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import android.widget.SearchView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Toast;
+
+import com.unnamed.b.atv.model.TreeNode;
+import com.unnamed.b.atv.view.AndroidTreeView;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 if (newText.equals("")) {
                     searchContacts = allContacts;
-                    updRecycler(searchContacts);
+                    updTreeView(searchContacts);
                 }
                 else search(newText);
                 return false;
@@ -103,8 +106,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "onChildClick groupPosition = " + namePos +
                         " childPosition = " + phonePos +
                         " id = " + id);
-                String tel = "tel:" + searchContacts.get(namePos).getPhones(phonePos)[P_NUMBER];
-                String toast = "Контакт: " +  searchContacts.get(namePos).getName() + " (" + searchContacts.get(namePos).getPhones(phonePos)[P_NUMBER] + ") добавлен на рабочий экран.";
+                String tel = "tel:" + searchContacts.get(namePos).getPhoneByIndex(phonePos)[P_NUMBER];
+                String toast = "Контакт: " +  searchContacts.get(namePos).getName() + " (" + searchContacts.get(namePos).getPhoneByIndex(phonePos)[P_NUMBER] + ") добавлен на рабочий экран.";
                 Toast.makeText(MainActivity.this, toast, Toast.LENGTH_LONG).show();
                 Intent cIntent = new Intent(Intent.ACTION_CALL, Uri.parse(tel));
 
@@ -173,7 +176,19 @@ public class MainActivity extends AppCompatActivity {
     private void listCreate() {
         allContacts = Contacts.getAll(this);
         searchContacts = allContacts;
-        updRecycler(allContacts);
+        updTreeView(allContacts);
+    }
+
+    private void search(String query) {
+        query = query.toLowerCase();
+        searchContacts = new ArrayList<>();
+        for (int i=0; i<allContacts.size(); i++) {
+            if (allContacts.get(i).getName().toLowerCase().contains(query)) {
+                searchContacts.add(allContacts.get(i));
+            }
+        }
+
+        updTreeView(searchContacts);
     }
 
     private void updateList(ArrayList<Contact> contacts) {
@@ -233,15 +248,21 @@ public class MainActivity extends AppCompatActivity {
         rv.setAdapter(rvAdapter);
     }
 
-    private void search(String query) {
-        query = query.toLowerCase();
-        searchContacts = new ArrayList<>();
-        for (int i=0; i<allContacts.size(); i++) {
-            if (allContacts.get(i).getName().toLowerCase().contains(query)) {
-                searchContacts.add(allContacts.get(i));
+    private void updTreeView(ArrayList<Contact> contacts) {
+        TreeNode root = TreeNode.root();
+
+        for (int nameId=0; nameId<contacts.size(); nameId++) {
+            TreeNode group = new TreeNode(contacts.get(nameId)).setViewHolder(new NameViewHolder(this));
+            for (int phoneId=0; phoneId<contacts.get(nameId).getPhones().size(); phoneId++) {
+                TreeNode item = new TreeNode(contacts.get(nameId).getPhoneByIndex(phoneId)).setViewHolder(new PhoneViewHolder(this));
+                group.addChild(item);
             }
+            root.addChild(group);
         }
 
-        updRecycler(searchContacts);
+        AndroidTreeView tView = new AndroidTreeView(this, root);
+        final ViewGroup containerView = (ViewGroup) findViewById(R.id.llContainer);
+        containerView.removeAllViews();
+        containerView.addView(tView.getView());
     }
 }

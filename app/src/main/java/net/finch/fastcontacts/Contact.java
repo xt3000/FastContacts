@@ -42,8 +42,12 @@ public class Contact {
         return _name;
     }
 
-    public String[] getPhones(int index) {
+    public String[] getPhoneByIndex(int index) {
         return _phones.get(index);
+    }
+
+    public ArrayList<String[]> getPhones() {
+        return _phones;
     }
 
     public String getPhotoUrl() {
