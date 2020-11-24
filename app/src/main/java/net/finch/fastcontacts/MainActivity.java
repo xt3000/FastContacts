@@ -4,9 +4,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.MenuItemCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.animation.LayoutTransition;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,10 +19,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.transition.Transition;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
+import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Toast;
@@ -38,30 +44,11 @@ public class MainActivity extends AppCompatActivity {
     public final String TAG_SEARCH = "FINCH_SEARCH";
     public final String TAG_CLICK = "FINCH_CLICK";
 
-    String[] cNames;
-    public  final int P_LABEL = 0;
-    public  final int P_NUMBER = 1;
-
-    // коллекция для групп
-    ArrayList<Map<String, String>> groupData;
-
-    // коллекция для элементов одной группы
-    ArrayList<Map<String, String>> childDataItem;
-
-    // общая коллекция для коллекций элементов
-    ArrayList<ArrayList<Map<String, String>>> childData;
-    // в итоге получится childData = ArrayList<childDataItem>
-
-    // список атрибутов группы или элемента
-    Map<String, String> m;
-
     final int REQUEST_CODE_PERMISSIONS = 3284;
     public  volatile ArrayList<Contact> allContacts;
     public ArrayList<Contact> searchContacts;
 
-    ExpandableListView elvMain;
-    SearchView sv;
-    RecyclerView rv;
+//    SearchView sv;
     AndroidTreeView tView;
 
     private Bundle sis = null;
@@ -73,13 +60,8 @@ public class MainActivity extends AppCompatActivity {
         sis = savedInstanceState;
 
 
-        elvMain = findViewById(R.id.elv);
-        sv = findViewById(R.id.sv);
-        rv = findViewById(R.id.rv);
-
-//        SearchManager sManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-//        sv.setSearchableInfo(sManager.getSearchableInfo(getComponentName()));
-        sv.setIconifiedByDefault(false);
+//        sv = findViewById(R.id.sv);
+//        sv.setIconifiedByDefault(false);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
@@ -88,61 +70,23 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.CALL_PHONE}, REQUEST_CODE_PERMISSIONS);
         }
 
-        sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                if (newText.equals("")) {
-                    searchContacts = allContacts;
-                    updTreeView(searchContacts);
-                }
-                else search(newText);
-                return false;
-            }
-        });
-
-        elvMain.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
-            public boolean onChildClick(ExpandableListView parent, View v,
-                                        int namePos,   int phonePos, long id) {
-                Log.d(TAG, "onChildClick groupPosition = " + namePos +
-                        " childPosition = " + phonePos +
-                        " id = " + id);
-                String tel = "tel:" + searchContacts.get(namePos).getPhoneByIndex(phonePos).getNum();
-                String toast = "Контакт: " +  searchContacts.get(namePos).getName() + " (" + searchContacts.get(namePos).getPhoneByIndex(phonePos).getNum() + ") добавлен на рабочий экран.";
-                Toast.makeText(MainActivity.this, toast, Toast.LENGTH_LONG).show();
-                Intent cIntent = new Intent(Intent.ACTION_CALL, Uri.parse(tel));
-
-                ShortcutManager sm = MainActivity.this.getSystemService(ShortcutManager.class);
-                if (sm.isRequestPinShortcutSupported()) {
-                    Icon ico = Icon.createWithResource(MainActivity.this, R.mipmap.ic_contact_circle);
-                    if (searchContacts.get(namePos).getPhotoUrl() != null) {
-                        try {ico = Icon.createWithBitmap(MediaStore.Images.Media.getBitmap(MainActivity.this.getContentResolver(), Uri.parse(searchContacts.get(namePos).getPhotoUrl())));}
-                        catch (IOException e) {e.printStackTrace();}
-                    }
-
-                    ShortcutInfo pinSI = new ShortcutInfo.Builder(MainActivity.this, searchContacts.get(namePos).getName())
-                            .setIntent(cIntent)
-                            .setShortLabel(searchContacts.get(namePos).getName())
-                            .setIcon(ico)
-                            .build();
-
-                    Intent callbackIntent = sm.createShortcutResultIntent(pinSI);
-                    PendingIntent succCallback = PendingIntent.getBroadcast(MainActivity.this, 0, callbackIntent, 0);
-                    sm.requestPinShortcut(pinSI, succCallback.getIntentSender());
-                }
-
-
-
-                return false;
-            }
-        });
-
-
+//        sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//            @Override
+//            public boolean onQueryTextSubmit(String query) {
+//
+//                return false;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String newText) {
+//                if (newText.equals("")) {
+//                    searchContacts = allContacts;
+//                    updTreeView(searchContacts);
+//                }
+//                else search(newText);
+//                return false;
+//            }
+//        });
     }
 
     @Override
@@ -175,6 +119,39 @@ public class MainActivity extends AppCompatActivity {
         outState.putString("tState", tView.getSaveState());
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+
+        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchView.setQueryHint("Поиск в контактах");
+
+        final int searchBarId = searchView.getContext().getResources().getIdentifier("android:id/search_bar", null, null);
+
+        LinearLayout searchBar = searchView.findViewById(searchBarId);
+        searchBar.setLayoutTransition(new LayoutTransition());
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.equals("")) {
+                    searchContacts = allContacts;
+                    updTreeView(searchContacts);
+                }
+                else search(newText);
+                return false;
+            }
+        });
+
+        return true;
+    }
+
     ///  ПОЛЬЗОВАТЕЛЬСКИЕ МЕТОДЫ   ///
     private void listCreate() {
         allContacts = Contacts.getAll(this);
@@ -193,63 +170,6 @@ public class MainActivity extends AppCompatActivity {
 
         updTreeView(searchContacts);
     }
-
-//    private void updateList(ArrayList<Contact> contacts) {
-//        if (contacts == null){
-//            Toast.makeText(MainActivity.this, "У вас нет контактов которые можно добавить на главный экран", Toast.LENGTH_LONG).show();
-//        }else {
-//            cNames = new String[contacts.size()];
-//            for (int i = 0; i< contacts.size(); i++) {
-//                cNames[i] = contacts.get(i).getName();
-//            }
-//
-//
-//            // заполняем коллекцию групп из массива с названиями групп
-//            groupData = new ArrayList<Map<String, String>>();
-//            for (String name : cNames) {
-//                // заполняем список атрибутов для каждой группы
-//                m = new HashMap<String, String>();
-//                m.put("groupName", name); // имя компании
-//                groupData.add(m);
-//            }
-//
-//            // список атрибутов групп для чтения
-//            String[] groupFrom = new String[] {"groupName"};
-//            // список ID view-элементов, в которые будет помещены атрибуты групп
-//            int[] groupTo = new int[] {R.id.tvNames};
-//
-//
-//            // создаем коллекцию для коллекций элементов
-//            childData = new ArrayList<ArrayList<Map<String, String>>>();
-//
-//            for (int i = 0; i< contacts.size(); i++) {
-//                childData.add(contacts.get(i).getPhonesMap("phones"));
-//            }
-//
-//            // список атрибутов элементов для чтения
-//            String[] childFrom = new String[] {"phones"};
-//            // список ID view-элементов, в которые будет помещены атрибуты элементов
-//            int[] childTo = new int[] {R.id.tvPhones};
-//
-//            SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(
-//                    this,
-//                    groupData,
-//                    R.layout.item_names,
-//                    groupFrom,
-//                    groupTo,
-//                    childData,
-//                    R.layout.item_phones,
-//                    childFrom,
-//                    childTo);
-//
-//            elvMain.setAdapter(adapter);
-//        }
-//    }
-//
-//    private  void updRecycler(ArrayList<Contact> contacts) {
-//        RVAdapter rvAdapter = new RVAdapter(this, contacts);
-//        rv.setAdapter(rvAdapter);
-//    }
 
     private void updTreeView(ArrayList<Contact> contacts) {
         TreeNode root = TreeNode.root();
