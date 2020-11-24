@@ -31,10 +31,10 @@ public class Contacts {
         );
         if(pCur != null) {
           if(pCur.getCount() > 0) {
-              HashMap<Integer, ArrayList<String[]>> phones = new HashMap<>();
+              HashMap<Integer, ArrayList<Phone>> phones = new HashMap<>();
               while (pCur.moveToNext()){
                   Integer contactId = pCur.getInt(pCur.getColumnIndex(PHONE_CONTACT_ID));
-                  ArrayList<String[]> curPhones = new ArrayList<>();
+                  ArrayList<Phone> curPhones = new ArrayList<>();
 
                   if(phones.containsKey(contactId)) {
                       curPhones = phones.get(contactId);
@@ -44,7 +44,7 @@ public class Contacts {
                   String strType = context.getString(ContactsContract.CommonDataKinds.Phone.getTypeLabelResource(intType));
                   if (intType == ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM) strType = pCur.getString(pCur.getColumnIndex(PHONE_LABEL));
 
-                  curPhones.add(new String[] {strType, pCur.getString(pCur.getColumnIndex(PHONE_NUMBER))});
+                  curPhones.add(new Phone(strType, pCur.getString(pCur.getColumnIndex(PHONE_NUMBER)), contactId));
                   phones.put(contactId, curPhones);
               }
 

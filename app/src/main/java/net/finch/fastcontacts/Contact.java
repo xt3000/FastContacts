@@ -8,13 +8,13 @@ import java.util.Map;
 public class Contact {
 
     private String _name ="";
-    private ArrayList<String[]> _phones = new ArrayList<>();        // String[] {PHONE_LABEL, PHONE_NUMBER}
+    private ArrayList<Phone> _phones = new ArrayList<>();        // String[] {PHONE_LABEL, PHONE_NUMBER}
     private String _photoURL;
     private int _id;
 
     public Contact(){}
 
-    public Contact(int id, String name, String url, ArrayList<String[]> phones) {
+    public Contact(int id, String name, String url, ArrayList<Phone> phones) {
         _id = id;
         _name = name;
         _photoURL = url;
@@ -25,7 +25,7 @@ public class Contact {
         _name = name;
     }
 
-    public void setPhones(ArrayList<String[]> phones) {
+    public void setPhones(ArrayList<Phone> phones) {
         phones = _phones;
     }
 
@@ -42,11 +42,11 @@ public class Contact {
         return _name;
     }
 
-    public String[] getPhoneByIndex(int index) {
+    public Phone getPhoneByIndex(int index) {
         return _phones.get(index);
     }
 
-    public ArrayList<String[]> getPhones() {
+    public ArrayList<Phone> getPhones() {
         return _phones;
     }
 
@@ -54,26 +54,8 @@ public class Contact {
         return _photoURL;
     }
 
-    public ArrayList<Map<String, String>> getPhonesMap(String Tag) {
-        ArrayList<Map<String, String>> phonesMap = new ArrayList<>();
-
-        int len = 0;
-        for (int i=0; i<_phones.size(); i++) {
-            if (len < _phones.get(i)[0].length()) len = _phones.get(i)[0].length();
-        }
-
-        for (int i=0; i<_phones.size(); i++) {
-            HashMap<String, String> m = new HashMap<>();
-
-            String l = "";
-            for (int c=0; c<len-_phones.get(i)[0].length(); c++) {
-                l += "\t";
-            }
-//            if (l == "") l = "\t";
-
-            m.put("phones", _phones.get(i)[0]+":"+l + "       " + _phones.get(i)[1]);
-            phonesMap.add(m);
-        }
-        return phonesMap;
+    public int getId() {
+        return _id;
     }
+
 }
