@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.animation.LayoutTransition;
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -53,11 +54,18 @@ public class MainActivity extends AppCompatActivity {
 
     private Bundle sis = null;
 
+    @SuppressLint("RestrictedApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         sis = savedInstanceState;
+
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_baseline_account_box_48);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setSubtitle("Быстрые контакты");
+//        getSupportActionBar().setIcon(R.drawable.ic_baseline_account_box_48);
 
 
 //        sv = findViewById(R.id.sv);
@@ -125,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
         SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
         searchView.setQueryHint("Поиск в контактах");
+
 
         final int searchBarId = searchView.getContext().getResources().getIdentifier("android:id/search_bar", null, null);
 
