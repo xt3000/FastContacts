@@ -4,11 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.MenuItemCompat;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
-import android.animation.LayoutTransition;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -20,36 +17,33 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
-import android.transition.Transition;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ExpandableListView;
-import android.widget.LinearLayout;
 import android.widget.SearchView;
-import android.widget.SimpleExpandableListAdapter;
 import android.widget.Toast;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.unnamed.b.atv.model.TreeNode;
 import com.unnamed.b.atv.view.AndroidTreeView;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     public final String TAG = "FINCH";
-    public final String TAG_SEARCH = "FINCH_SEARCH";
     public final String TAG_CLICK = "FINCH_CLICK";
+
+    private String TOAST_CONTACT;
+    private String TOAST_ADDED;
 
     final int REQUEST_CODE_PERMISSIONS = 3284;
     public  volatile ArrayList<Contact> allContacts;
     public ArrayList<Contact> searchContacts;
+    private ShortcutManager sm;
 
-//    SearchView sv;
     AndroidTreeView tView;
 
     private Bundle sis = null;
@@ -61,15 +55,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         sis = savedInstanceState;
 
-        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_baseline_account_box_48);
+        TOAST_CONTACT = getResources().getString(R.string.contact);
+        TOAST_ADDED = getResources().getString(R.string.added);
+        sm = MainActivity.this.getSystemService(ShortcutManager.class);
+
+        Objects.requireNonNull(getSupportActionBar()).setHomeAsUpIndicator(R.drawable.ic_baseline_account_box_48);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setSubtitle("Быстрые контакты");
-//        getSupportActionBar().setIcon(R.drawable.ic_baseline_account_box_48);
+        getSupportActionBar().setSubtitle(getResources().getString(R.string.sub_title));
 
 
-//        sv = findViewById(R.id.sv);
-//        sv.setIconifiedByDefault(false);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
@@ -78,24 +73,9 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.CALL_PHONE}, REQUEST_CODE_PERMISSIONS);
         }
 
-//        sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-//            @Override
-//            public boolean onQueryTextSubmit(String query) {
-//
-//                return false;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String newText) {
-//                if (newText.equals("")) {
-//                    searchContacts = allContacts;
-//                    updTreeView(searchContacts);
-//                }
-//                else search(newText);
-//                return false;
-//            }
-//        });
     }
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -132,13 +112,13 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.main, menu);
 
         SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
-        searchView.setQueryHint("Поиск в контактах");
+        searchView.setQueryHint(getResources().getString(R.string.search_hint));
 
 
-        final int searchBarId = searchView.getContext().getResources().getIdentifier("android:id/search_bar", null, null);
-
-        LinearLayout searchBar = searchView.findViewById(searchBarId);
-        searchBar.setLayoutTransition(new LayoutTransition());
+//        final int searchBarId = searchView.getContext().getResources().getIdentifier("android:id/search_bar", null, null);
+//
+//        LinearLayout searchBar = searchView.findViewById(searchBarId);
+//        searchBar.setLayoutTransition(new LayoutTransition());
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -196,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
 
         tView = new AndroidTreeView(this, root);
         tView.setDefaultAnimation(true);
-        final ViewGroup containerView = (ViewGroup) findViewById(R.id.llContainer);
+        final ViewGroup containerView = findViewById(R.id.llContainer);
         containerView.removeAllViews();
         containerView.addView(tView.getView());
 
@@ -213,15 +193,17 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onClick(TreeNode node, Object value) {
             Phone p = (Phone) value;
+            Contact contact = findContactById(p.getId());
+//            ArrayList<Phone> ps = new ArrayList<>();
+//            ps.add(p);
+//            contact.setPhones(ps);
             Log.d(TAG_CLICK, "onClick: value = " + p.getLabel() + " : " + p.getNum());
 
             String tel = "tel:" + p.getNum();
-            String toast = "Контакт: " + p.getLabel() + " (" + p.getNum() + ") добавлен на рабочий экран.";
             Intent cIntent = new Intent(Intent.ACTION_CALL, Uri.parse(tel));
 
-            Contact contact = findContactById(p.getId());
             if (contact != null) {
-                ShortcutManager sm = MainActivity.this.getSystemService(ShortcutManager.class);
+
                 if (sm.isRequestPinShortcutSupported()) {
                     Icon ico = Icon.createWithResource(MainActivity.this, R.mipmap.ic_contact_circle);
                     if (contact.getPhotoUrl() != null) {
@@ -242,9 +224,23 @@ public class MainActivity extends AppCompatActivity {
                     PendingIntent succCallback = PendingIntent.getBroadcast(MainActivity.this, 0, callbackIntent, 0);
                     sm.requestPinShortcut(pinSI, succCallback.getIntentSender());
 
-                    Toast.makeText(MainActivity.this, toast, Toast.LENGTH_LONG).show();
                 }
             }
+
+
+
+//                    Toast.makeText(MainActivity.this, toast, Toast.LENGTH_LONG).show();
+            assert contact != null;
+            String toast = TOAST_CONTACT + " " + contact.getName() + " (" + p.getNum() + ") " + TOAST_ADDED;
+            View v = node.getViewHolder().getView();
+            Snackbar.make(v, toast, Snackbar.LENGTH_LONG)
+//                    .setAction("UNDO", new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//
+//                        }
+//                    })
+                    .show();
         }
     };
 

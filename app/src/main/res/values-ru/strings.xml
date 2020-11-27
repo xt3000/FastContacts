@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FastContacts</string>
+    <string name="app_label">Быстрые Контакты</string>
+    <string name="sub_title">Выберите контакт</string>
+    <string name="contact">Контакт:</string>
+    <string name="added">добавлен на рабочий экран.</string>
+    <string name="search_hint">Поиск</string>
+</resources>

@@ -6,6 +6,10 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="searchViewStyle">@style/mSearchViewStile</item>
+    </style>
+    <style name="mSearchViewStile" parent="Widget.AppCompat.SearchView">
+        <item name="android:imeActionId">6</item>
     </style>
 
 </resources>
