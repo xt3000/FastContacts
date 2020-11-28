@@ -1,5 +1,6 @@
 package net.finch.fastcontacts;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
@@ -23,7 +24,7 @@ public class NameViewHolder extends TreeNode.BaseNodeViewHolder<Contact> {
     @Override
     public View createNodeView(TreeNode node, Contact cont) {
         final LayoutInflater inflater = LayoutInflater.from(context);
-        final View view = inflater.inflate(R.layout.name_group_layout, null, false);
+        @SuppressLint("InflateParams") final View view = inflater.inflate(R.layout.name_group_layout, null, false);
 
         TextView tvNameGroup = view.findViewById(R.id.tv_nameGroup);
         tvNameGroup.setText(cont.getName());

@@ -90,7 +90,7 @@ public class Contacts {
         for (int i=0; i<num.length(); i++) {
             String s = Character.toString(num.charAt(i));
             if (s.equals("-") || s.equals(" ") || s.equals("(") || s.equals(")")) continue;
-            else res.append(s);
+            res.append(s);
         }
         return res.toString();
     }

@@ -1,7 +1,5 @@
 package net.finch.fastcontacts;
 
-import android.icu.util.EthiopicCalendar;
-
 public class Phone {
     private int id;
     private String label;
@@ -22,8 +20,7 @@ public class Phone {
     }
 
     public String getNumDecorated() {
-        StringBuffer sb = new StringBuffer(num);
-        String pref = Character.toString(num.charAt(0)) + num.charAt(1);
+        StringBuilder sb = new StringBuilder(num);
         int n = num.length();
 
         if (n>5) {
