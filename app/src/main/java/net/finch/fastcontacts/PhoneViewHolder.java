@@ -21,7 +21,7 @@ public class PhoneViewHolder extends TreeNode.BaseNodeViewHolder<Phone> {
         tvPL.setText(phone.getLabel());
 
         TextView tvPN = view.findViewById(R.id.tv_phoneNum);
-        tvPN.setText(phone.getNum());
+        tvPN.setText(phone.getNumDecorated());
 
         return view;
     }

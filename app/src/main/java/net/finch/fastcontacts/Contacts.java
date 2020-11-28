@@ -44,8 +44,13 @@ public class Contacts {
                   String strType = context.getString(ContactsContract.CommonDataKinds.Phone.getTypeLabelResource(intType));
                   if (intType == ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM) strType = pCur.getString(pCur.getColumnIndex(PHONE_LABEL));
 
-                  curPhones.add(new Phone(strType, pCur.getString(pCur.getColumnIndex(PHONE_NUMBER)), contactId));
-                  phones.put(contactId, curPhones);
+                  String normNum = normalizeNumber(pCur.getString(pCur.getColumnIndex(PHONE_NUMBER)));
+                  if (!containNum(curPhones, normNum)) {
+                      curPhones.add(new Phone(strType, normalizeNumber(pCur.getString(pCur.getColumnIndex(PHONE_NUMBER))), contactId));
+                      phones.put(contactId, curPhones);
+                  }
+
+
               }
 
               Cursor cur = cr.query(
@@ -78,5 +83,24 @@ public class Contacts {
           pCur.close();
         }
         return null;
+    }
+
+    private static String normalizeNumber(String num) {
+        StringBuilder res = new StringBuilder();
+        for (int i=0; i<num.length(); i++) {
+            String s = Character.toString(num.charAt(i));
+            if (s.equals("-") || s.equals(" ") || s.equals("(") || s.equals(")")) continue;
+            else res.append(s);
+        }
+        return res.toString();
+    }
+
+    private static boolean containNum(ArrayList<Phone> contactPhones, String num) {
+        for (int i=0; i<contactPhones.size(); i++) {
+            if (contactPhones.get(i).getNum().equals(num)){
+                return true;
+            }
+        }
+        return false;
     }
 }
