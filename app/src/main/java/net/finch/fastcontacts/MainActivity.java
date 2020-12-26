@@ -22,6 +22,7 @@ import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -163,29 +164,36 @@ public class MainActivity extends AppCompatActivity {
     private void updTreeView(ArrayList<Contact> contacts) {
         TreeNode root = TreeNode.root();
 
-        for (int nameId=0; nameId<contacts.size(); nameId++) {
-            TreeNode group = new TreeNode(contacts.get(nameId)).setViewHolder(new NameViewHolder(this));
-            for (int phoneId=0; phoneId<contacts.get(nameId).getPhones().size(); phoneId++) {
-                Phone phone = contacts.get(nameId).getPhoneByIndex(phoneId);
-                TreeNode item = new TreeNode(phone).setViewHolder(new PhoneViewHolder(this));
-                item.setClickListener(itemClickListener);
-                group.addChild(item);
+        if (contacts != null) {
+            for (int nameId=0; nameId<contacts.size(); nameId++) {
+                TreeNode group = new TreeNode(contacts.get(nameId)).setViewHolder(new NameViewHolder(this));
+                for (int phoneId=0; phoneId<contacts.get(nameId).getPhones().size(); phoneId++) {
+                    Phone phone = contacts.get(nameId).getPhoneByIndex(phoneId);
+                    TreeNode item = new TreeNode(phone).setViewHolder(new PhoneViewHolder(this));
+                    item.setClickListener(itemClickListener);
+                    group.addChild(item);
+                }
+                root.addChild(group);
             }
-            root.addChild(group);
+
+            tView = new AndroidTreeView(this, root);
+            tView.setDefaultAnimation(true);
+            final ViewGroup containerView = findViewById(R.id.llContainer);
+            containerView.removeAllViews();
+            containerView.addView(tView.getView());
+
+            if (sis != null) {
+                String state = sis.getString("tState");
+                if (!TextUtils.isEmpty(state)) {
+                    tView.restoreState(state);
+                }
+            }
+        } else {
+            TextView tvNoContacts = findViewById(R.id.tv_noContacts);
+            tvNoContacts.setVisibility(View.VISIBLE);
         }
 
-        tView = new AndroidTreeView(this, root);
-        tView.setDefaultAnimation(true);
-        final ViewGroup containerView = findViewById(R.id.llContainer);
-        containerView.removeAllViews();
-        containerView.addView(tView.getView());
 
-        if (sis != null) {
-            String state = sis.getString("tState");
-            if (!TextUtils.isEmpty(state)) {
-                tView.restoreState(state);
-            }
-        }
     }
 
 

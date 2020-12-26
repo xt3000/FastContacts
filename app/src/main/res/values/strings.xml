@@ -5,4 +5,5 @@
     <string name="contact">Contact:</string>
     <string name="added">added to the home screen.</string>
     <string name="search_hint">Search</string>
+    <string name="no_contacts">No contacts found on your device that can be added for a quick call.</string>
 </resources>

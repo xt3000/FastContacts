@@ -5,6 +5,16 @@
     android:layout_height="wrap_content"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/tv_noContacts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:text="@string/no_contacts"
+        android:textSize="24sp"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/llContainer"
         android:layout_width="match_parent"

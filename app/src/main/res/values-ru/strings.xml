@@ -6,4 +6,5 @@
     <string name="contact">Контакт:</string>
     <string name="added">добавлен на главный экран.</string>
     <string name="search_hint">Поиск</string>
+    <string name="no_contacts">На вашем устройстве не найдены контакты, которые можно добавить для быстрого звонка.</string>
 </resources>
