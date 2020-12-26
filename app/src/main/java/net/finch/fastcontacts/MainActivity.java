@@ -227,19 +227,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-
-
-//                    Toast.makeText(MainActivity.this, toast, Toast.LENGTH_LONG).show();
             assert contact != null;
             String toast = TOAST_CONTACT + " " + contact.getName() + " (" + p.getNum() + ") " + TOAST_ADDED;
             View v = node.getViewHolder().getView();
             Snackbar.make(v, toast, Snackbar.LENGTH_LONG)
-//                    .setAction("UNDO", new View.OnClickListener() {
-//                        @Override
-//                        public void onClick(View v) {
-//
-//                        }
-//                    })
                     .show();
         }
     };
